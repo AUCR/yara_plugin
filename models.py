@@ -62,7 +62,8 @@ class YaraRules(db.Model):
 
 @event.listens_for(db.session, 'before_flush')
 def receive_before_flush(session, flush_context, instances):
-    for t in (x for x in session.new.union(session.dirty) if isinstance(x, YaraRules)):
+    for t in (x for x in session.new.union(session.dirty) if (isinstance(x, YaraRules) and
+                                                              x.yara_rules is not None and len(x.yara_rules) > 0)):
         good, bad = t.test_yara()
         print('GOOD Yara: ' + ' -- '.join(good))
         print('BAD Yara:  ' + ' -- '.join(bad))
