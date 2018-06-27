@@ -1,24 +1,25 @@
+# coding=utf-8
 """Yara AUCR plugin default database tables."""
 import os
-
-# coding=utf-8
+import logging
 import udatetime as datetime
 import yara
 from sqlalchemy import event
+from flask import flash
 
 from app import db
 
 
-def check_dir(dir, name):
-    if not os.path.exists(dir):
-        raise RuntimeError("The {} dir '{}' must exist but it doesn't!".format(name, dir))
+def check_dir(file_dir, name):
+    if not os.path.exists(file_dir):
+        raise RuntimeError("The {} dir '{}' must exist but it doesn't!".format(name, file_dir))
 
 
 class YaraRules(db.Model):
     """Yara data default table for aucr."""
 
-    __mal_dir = '/upload/malware'
-    __fp_dir = '/upload/fp'
+    __mal_dir = 'upload/malware/'
+    __fp_dir = 'upload/fp/'
 
     check_dir(__mal_dir, 'malware')
     check_dir(__fp_dir, 'fp')
@@ -55,8 +56,7 @@ class YaraRules(db.Model):
             YaraRules.__scan(scanner, YaraRules.__fp_dir, bad_matches)
             return good_matches, bad_matches
         except Exception as e:
-            # logging.warning("Not a valid Answer" + str(e))
-            print("Something broke " + str(e))
+            logging.warning("Not a valid Answer" + str(e))
             return [], []
 
 
@@ -65,6 +65,5 @@ def receive_before_flush(session, flush_context, instances):
     for t in (x for x in session.new.union(session.dirty) if (isinstance(x, YaraRules) and
                                                               x.yara_rules is not None and len(x.yara_rules) > 0)):
         good, bad = t.test_yara()
-        print('GOOD Yara: ' + ' -- '.join(good))
-        print('BAD Yara:  ' + ' -- '.join(bad))
-        ()
+        flash('True Positives MD5s: ' + ' -- '.join(good))
+        flash('False Positives MD5s:  ' + ' -- '.join(bad))
