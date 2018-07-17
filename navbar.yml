@@ -1,2 +1,2 @@
 main:
-  user: [Yara: 'yara.yara_route']
+  user: [yara: 'yara.yara_route']
