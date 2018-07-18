@@ -18,18 +18,15 @@ def check_dir(file_dir, name):
 class YaraRules(db.Model):
     """Yara data default table for aucr."""
 
-    __mal_dir = 'upload/malware/'
-    __fp_dir = 'upload/fp/'
-
-    check_dir(__mal_dir, 'malware')
-    check_dir(__fp_dir, 'fp')
+    __mal_dir = 'upload/'
+    check_dir(__mal_dir, 'md5s')
 
     __tablename__ = 'yara_rules'
     id = db.Column(db.Integer, primary_key=True)
     yara_list_name = db.Column(db.String(32), index=True)
     created_time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     modify_time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    yara_rules = db.Column(db.String(4912))
+    yara_rules = db.Column(db.String(3072))
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     group_access = db.Column(db.Integer, db.ForeignKey('groups.id'))
 
@@ -47,14 +44,11 @@ class YaraRules(db.Model):
                     print("Yara issue; " + str(e))
 
     def test_yara(self):
-        good_matches = []
-        bad_matches = []
-
+        yara_matches = []
         try:
             scanner = yara.compile(source=self.yara_rules)
-            YaraRules.__scan(scanner, YaraRules.__mal_dir, good_matches)
-            YaraRules.__scan(scanner, YaraRules.__fp_dir, bad_matches)
-            return good_matches, bad_matches
+            YaraRules.__scan(scanner, YaraRules.__mal_dir, yara_matches)
+            return yara_matches
         except Exception as e:
             logging.warning("Not a valid Answer" + str(e))
             return [], []
@@ -64,6 +58,5 @@ class YaraRules(db.Model):
 def receive_before_flush(session, flush_context, instances):
     for t in (x for x in session.new.union(session.dirty) if (isinstance(x, YaraRules) and
                                                               x.yara_rules is not None and len(x.yara_rules) > 0)):
-        good, bad = t.test_yara()
-        flash('True Positives MD5s: ' + ' -- '.join(good))
-        flash('False Positives MD5s:  ' + ' -- '.join(bad))
+        yara_matches = t.test_yara()
+        flash('Yara MD5 Matches: ' + ' -- '.join(yara_matches))

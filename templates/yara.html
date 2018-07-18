@@ -4,8 +4,11 @@
 {% block app_content %}
     <main class="mdl-layout__content">
         <div class="page-content">
-                <div class="mdl-grid">
-            <span class="mdl-layout-title">Yara Rules</span>
+            <div class="mdl-grid">
+                <span class="mdl-layout-title">YARA</span>
+                <div class="mdl-layout-spacer"></div>
+                <a href="{{  url_for('yara.create') }}">Create New Ruleset</a>
+            </div>
             <div class="mdl-layout-spacer"></div>
             {% with form_object="createbutton", button_icon="add", button_text="Run Yara List", button_value="createbuttonvalue" %}
                 {% include "subtemplates/_plain_button.html" %}
@@ -16,6 +19,5 @@
             {% include "subtemplates/_table_object.html" %}
         {% endwith %}
         <div class="mdl-layout-spacer"></div>
-        </div>
     </main>
 {% endblock %}

@@ -54,7 +54,7 @@ def edit():
     for user_group in group_ids:
         user_groups.append(user_group.groups_id)
     yara = YaraRules.query.filter_by(id=submitted_yara_id)
-    yara = yara.filter(or_(YaraRules.id==submitted_yara_id, YaraRules.group_access.in_(user_groups))).first()
+    yara = yara.filter(or_(YaraRules.id == submitted_yara_id, YaraRules.group_access.in_(user_groups))).first()
     if request.method == 'POST':
         if yara:
             form = EditYara(request.form)
