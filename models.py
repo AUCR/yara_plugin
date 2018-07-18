@@ -8,6 +8,7 @@ from sqlalchemy import event
 from flask import flash
 
 from app import db
+from app.plugins.unum.models import UploadedFiles
 
 
 def check_dir(file_dir, name):
@@ -59,4 +60,8 @@ def receive_before_flush(session, flush_context, instances):
     for t in (x for x in session.new.union(session.dirty) if (isinstance(x, YaraRules) and
                                                               x.yara_rules is not None and len(x.yara_rules) > 0)):
         yara_matches = t.test_yara()
-        flash('Yara MD5 Matches: ' + ' -- '.join(yara_matches))
+        for item in yara_matches:
+            match_known_item = UploadedFiles.query.filter_by(upload_file=item).first()
+            flash('Yara MD5 Matches: ' + match_known_item.upload_file +
+                  ' Classification: ' + match_known_item.classification +
+                  ' Description: ' + match_known_item.description)
