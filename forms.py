@@ -11,6 +11,7 @@ class CreateYara(FlaskForm):
     """Yara Rule Creation Form."""
 
     yara_rules = TextAreaField(_l('Yara Rules'), validators=[Length(min=0, max=4912)])
+    yara_list_name = TextAreaField(_l('List Name'), validators=[Length(min=0, max=32)])
     group_access = SelectMultipleField(_l('Group Access'), choices=AVAILABLE_CHOICES)
     submit = SubmitField(_l('Create'))
 

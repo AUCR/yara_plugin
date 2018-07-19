@@ -33,7 +33,10 @@ def create():
     if request.method == 'POST':
         form = CreateYara(request.form)
         if form.validate():
+            form.yara_rules = request.form["yara_rules"]
+            form.yara_list_name = request.form["yara_list_name"]
             new_yara = YaraRules(created_by=current_user.id, group_access=form.group_access.data[0],
+                                 yara_list_name=form.yara_list_name, yara_rules=form.yara_rules,
                                  created_time_stamp=udatetime.utcnow(), modify_time_stamp=udatetime.utcnow())
             db.session.add(new_yara)
             db.session.commit()

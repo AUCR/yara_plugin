@@ -23,13 +23,13 @@
                     {{ form.hidden_tag() }}
                     <!--</div>-->
                     <div class="mdl-layout-spacer"></div>
-                    {% with form_object=yara_list_name, form_object_name=yara_list_name, form_object_rows=1, form_object_label="Yara Rule List Name", form_object_value=form.data.yara_list_name %}
+                    {% with form_object=yara_list_name, form_object_name="yara_list_name", form_object_rows=1, form_object_label="Yara List Name", form_object_value=form.data.yara_list_name if form.data.yara_list_name != None else ""  %}
                         {% include "subtemplates/_form_object_textfield.html" %}
                     {% endwith %}
-                    {% with iterable_thing=groups, dropdown_topic="group_access", dropdown_label="Group Access",form_object_value=form.data.group_acccess %}
+                    {% with iterable_thing=groups, dropdown_topic="group_access", dropdown_label="Group Access",form_object_value=form.group_acccess %}
                         {% include "subtemplates/_dropdown_object.html" %}
                     {% endwith %}
-                    {% with form_object="yararule", form_object_name="yara_rule", form_object_rows=20, form_object_label="Yara Rule", form_object_value=form.case_notes %}
+                    {% with form_object=yara_rules, form_object_name="yara_rules", form_object_rows=40, form_object_label="Yara Rules", form_object_value=form.data.yara_rules if form.data.yara_rules != None else ""  %}
                         {% include "subtemplates/_form_object_textfield.html" %}
                     {% endwith %}
                     <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
