@@ -1,0 +1,19 @@
+info:
+  project_name: "AUCR Yara Plugin"
+  project_start_date: 03/25/2018
+  name: "Yara "
+  authors: "Wyatt Roersma, Adam Lesperance, Daniel Deneweth"
+  authors_email: "wyattroersma@gmail.com"
+  description: "A master timekeeper plugin for AUCR."
+  license: 'MIT'
+  classifiers:
+    - 'Development Status :: 4 - Beta'
+    - 'Intended Audience :: Developers'
+    - 'License :: OSI Approved :: MIT license'
+    - 'Programming Language :: Python :: 3.6'
+
+version:
+  major: 0
+  minor: 0
+  revision: 0
+  release: 3

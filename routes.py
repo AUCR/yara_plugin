@@ -40,7 +40,7 @@ def create():
             flash("The yara rule has been created.")
             return redirect(url_for('yara.yara_route'))
     form = CreateYara(request.form)
-    return render_template('create.html', title='Create Yara', form=form, groups=group_info)
+    return render_template('create.html', title='Create A New Yara Ruleset', form=form, groups=group_info)
 
 
 @yara_page.route('/edit', methods=['GET', 'POST'])
@@ -67,7 +67,7 @@ def edit():
         if yara:
             form = EditYara(yara)
             yara_dict = {"id": yara.id, "yara_rules": yara.yara_rules, "yara_list_name": yara.yara_list_name}
-            return render_template('edit.html', title='Edit Yara Rule', form=form,
+            return render_template('edit.html', title='Edit Yara Ruleset', form=form,
                                    groups=group_info, table_dict=yara_dict)
         else:
             return yara_route()
