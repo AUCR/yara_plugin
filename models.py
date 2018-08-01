@@ -9,6 +9,7 @@ from sqlalchemy import event
 from flask import flash
 from app import db
 from app.plugins.unum.models import UploadedFiles
+from app.plugins.reports.storage.elastic_search import add_to_index
 from app.plugins.tasks.mq import index_mq_aucr_report
 
 
@@ -76,9 +77,13 @@ def receive_before_flush(session, flush_context, instances):
         yara_matches = t.test_yara()
         for item in yara_matches:
             match_known_item = UploadedFiles.query.filter_by(upload_file=item).first()
+            yara_matches_dict = {"Yara Rule Name": t.yara_list_name,
+                                 "MD5 Hash Matched": match_known_item.upload_file,
+                                 "Classification": match_known_item.classification,
+                                 "Description": match_known_item.description,
+                                 "Timestamp": datetime.utcnow()}
             if match_known_item:
                 flash('Yara MD5 Matches: ' + match_known_item.upload_file +
                       ' Classification: ' + match_known_item.classification +
                       ' Description: ' + match_known_item.description)
-                index_mq_aucr_report(("Yara Results " + t.yara_list_name + ":" + match_known_item.upload_file),
-                                     "localhost")
+                add_to_index("yara-matches", yara_matches_dict)
