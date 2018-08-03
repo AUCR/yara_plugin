@@ -1,2 +1,8 @@
 main:
-  user: [yara: 'yara.yara_route']
+  user: [
+    link : [
+      page: 'yara.yara_route',
+      icon: 'queue',
+      title: 'Yara'
+    ]
+  ]
