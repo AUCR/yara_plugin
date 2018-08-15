@@ -10,7 +10,6 @@ from flask import flash
 from app import db
 from app.plugins.unum.models import UploadedFiles
 from app.plugins.reports.storage.elastic_search import add_to_index
-from app.plugins.tasks.mq import index_mq_aucr_report
 
 
 class YaraRuleResults(db.Model):
@@ -33,7 +32,7 @@ def check_dir(file_dir, name):
 class YaraRules(db.Model):
     """Yara data default table for aucr."""
     __searchable__ = ['id', 'yara_list_name', 'modify_time_stamp', 'yara_rules', 'created_by']
-    __mal_dir = 'upload/'
+    __mal_dir = os.environ.get('FILE_FOLDER')
     check_dir(__mal_dir, 'md5s')
 
     __tablename__ = 'yara_rules'
@@ -67,6 +66,19 @@ class YaraRules(db.Model):
         except Exception as e:
             logging.warning("Not a valid Answer" + str(e))
             return [], []
+
+    def to_dict(self):
+        """Return dictionary object type for API calls."""
+        data = {
+            'id': self.id,
+            'yara_list_name': self.yara_list_name,
+            'last_seen': self.created_time_stamp.isoformat() + 'Z',
+            'modify_time_stamp': self.modify_time_stamp.isoformat() + 'Z',
+            'created_by': self.created_by,
+            'group_access': self.group_access,
+            'yara_rule': self.yara_rules
+        }
+        return data
 
 
 @event.listens_for(db.session, 'before_flush')
