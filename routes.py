@@ -1,8 +1,9 @@
 """AUCR yara plugin route page handler."""
 # coding=utf-8
+import os
 import udatetime
 from app import db
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from app.plugins.auth.models import Groups, Group
 from app.plugins.yara.forms import CreateYara, EditYara
@@ -35,9 +36,12 @@ def create():
         if form.validate():
             form.yara_rules = request.form["yara_rules"]
             form.yara_list_name = request.form["yara_list_name"]
+            data = {"filename": form.yara_list_name, "fileobj": form.yara_rules}
+            current_app.mongo.db.aucr.insert_one(data)
             new_yara = YaraRules(created_by=current_user.id, group_access=form.group_access.data[0],
-                                 yara_list_name=form.yara_list_name, yara_rules=form.yara_rules,
-                                 created_time_stamp=udatetime.utcnow(), modify_time_stamp=udatetime.utcnow())
+                                 yara_list_name=form.yara_list_name, created_time_stamp=udatetime.utcnow(),
+                                 modify_time_stamp=udatetime.utcnow())
+
             db.session.add(new_yara)
             db.session.commit()
             flash("The yara rule has been created.")
@@ -64,12 +68,16 @@ def edit():
             if form.validate_on_submit():
                 yara.yara_rules = request.form["yara_rules"]
                 yara.yara_list_name = request.form["yara_list_name"]
+                data = {"filename": request.form["yara_list_name"], "fileobj": request.form["yara_rules"]}
+                current_app.mongo.db.aucr.update_one(data)
                 db.session.commit()
         return yara_route()
     if request.method == "GET":
         if yara:
             form = EditYara(yara)
-            yara_dict = {"id": yara.id, "yara_rules": yara.yara_rules, "yara_list_name": yara.yara_list_name}
+            yara_rule_file = current_app.mongo.db.aucr.find_one({"filename": yara.yara_list_name})
+            yara_dict = {"id": yara.id, "yara_rules": yara_rule_file["fileobj"], "yara_list_name": yara.yara_list_name}
+            form.yara_rules = yara_rule_file["fileobj"]
             return render_template('edit.html', title='Edit Yara Ruleset', form=form,
                                    groups=group_info, table_dict=yara_dict)
         else:

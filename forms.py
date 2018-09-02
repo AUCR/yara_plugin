@@ -21,7 +21,7 @@ class EditYara(FlaskForm):
 
     yara_id = IntegerField(_l('Yara ID'), validators=[Length(min=0, max=12)])
     yara_list_name = TextAreaField(_l('List Name'), validators=[Length(min=0, max=32)])
-    yara_rules = TextAreaField(_l('Yara Rules'), validators=[Length(min=0, max=4912)])
+    yara_rules = TextAreaField(_l('Yara Rules'))
     submit = SubmitField(_l('Save'))
 
     def __init__(self, yara, *args, **kwargs):
