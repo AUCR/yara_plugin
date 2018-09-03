@@ -68,8 +68,9 @@ def edit():
             if form.validate_on_submit():
                 yara.yara_rules = request.form["yara_rules"]
                 yara.yara_list_name = request.form["yara_list_name"]
+                current_app.mongo.db.aucr.delete_one({"filename": yara.yara_list_name})
                 data = {"filename": request.form["yara_list_name"], "fileobj": request.form["yara_rules"]}
-                current_app.mongo.db.aucr.update_one(data)
+                current_app.mongo.db.aucr.insert_one(data)
                 db.session.commit()
         return yara_route()
     if request.method == "GET":

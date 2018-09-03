@@ -98,7 +98,7 @@ class YaraRuleResults(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     yara_list_id = db.Column(db.Integer, db.ForeignKey('yara_rules.id'))
     matches = db.Column(db.String(3072))
-    file_matches = db.Column(db.Integer, db.ForeignKey('upload_file_table.id'))
+    file_matches = db.Column(db.Integer, db.ForeignKey('uploaded_file_table.id'))
 
     def __repr__(self):
         return '<Yara Results {}>'.format(self.yara_name)
