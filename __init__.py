@@ -2,6 +2,7 @@
 # coding=utf-8
 from app.plugins.yara.routes import yara_page
 from app.plugins.yara.api.rules import rules_api_page
+from app.plugins.yara import models
 
 
 def load(app):

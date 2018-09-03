@@ -1,7 +1,7 @@
 """AUCR yara plugin default page forms."""
 # coding=utf-8
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, TextAreaField, SelectMultipleField, IntegerField, StringField
+from wtforms import SubmitField, TextAreaField, SelectMultipleField, IntegerField
 from wtforms.validators import Length
 from flask_babel import lazy_gettext as _l
 from app.plugins.Horatio.globals import AVAILABLE_CHOICES
@@ -21,7 +21,7 @@ class EditYara(FlaskForm):
 
     yara_id = IntegerField(_l('Yara ID'), validators=[Length(min=0, max=12)])
     yara_list_name = TextAreaField(_l('List Name'), validators=[Length(min=0, max=32)])
-    yara_rules = TextAreaField(_l('Yara Rules'))
+    yara_rules = TextAreaField(_l('Yara Rules'), validators=[Length(min=0, max=4912000)])
     submit = SubmitField(_l('Save'))
 
     def __init__(self, yara, *args, **kwargs):
@@ -32,5 +32,5 @@ class EditYara(FlaskForm):
             self.yara_rules = yara.yara_rules
             self.yara_list_name = yara.yara_list_name
         except:
-            self.yara_rules = yara["yara_rules"]
+            self.yara_rules = yara.yara_rules
             self.yara_list_name = yara["yara_list_name"]

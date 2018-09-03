@@ -12,21 +12,10 @@ from app.plugins.unum.models import UploadedFiles, Classification
 from app.plugins.reports.storage.elastic_search import add_to_index
 
 
-class YaraRuleResults(db.Model):
-    """Yara Result database table."""
-
-    __tablename__ = 'yara_rule_results'
-    id = db.Column(db.Integer, primary_key=True)
-    # yara_list_id = db.Column(db.Integer, db.ForeignKey('yara_rules.id'))
-    matches = db.Column(db.String(3072))
-
-    def __repr__(self):
-        return '<Yara Results {}>'.format(self.yara_name)
-
-
 def check_dir(file_dir, name):
-    if not os.path.exists(file_dir):
-        raise RuntimeError("The {} dir '{}' must exist but it doesn't!".format(name, file_dir))
+    if file_dir:
+        if not os.path.exists(file_dir):
+            raise RuntimeError("The {} dir '{}' must exist but it doesn't!".format(name, file_dir))
 
 
 class YaraRules(db.Model):
@@ -100,3 +89,16 @@ def receive_before_flush(session, flush_context, instances):
                       ' Classification: ' + str(match_known_classification.classification) +
                       ' Description: ' + match_known_item.description)
                 add_to_index("yara-matches", yara_matches_dict)
+
+
+class YaraRuleResults(db.Model):
+    """Yara Result database table."""
+
+    __tablename__ = 'yara_rule_results'
+    id = db.Column(db.Integer, primary_key=True)
+    yara_list_id = db.Column(db.Integer, db.ForeignKey('yara_rules.id'))
+    matches = db.Column(db.String(3072))
+    file_matches = db.Column(db.Integer, db.ForeignKey('upload_file_table.id'))
+
+    def __repr__(self):
+        return '<Yara Results {}>'.format(self.yara_name)
