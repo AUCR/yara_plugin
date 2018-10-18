@@ -7,7 +7,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app.plugins.auth.models import Groups, Group
 from app.plugins.yara.forms import CreateYara, EditYara
-from app.plugins.yara.models import YaraRules
+from app.plugins.yara.models import YaraRules, YaraRuleResults
 from sqlalchemy import or_
 
 yara_page = Blueprint('yara', __name__, template_folder='templates')
@@ -76,10 +76,16 @@ def edit():
     if request.method == "GET":
         if yara:
             form = EditYara(yara)
+            yara_list_results = YaraRuleResults.query.filter_by(yara_list_id=yara.id)
+            yara_results_dict = {}
+            for item in yara_list_results:
+                item_dict = {"id": item.file_matches, "MD5 Hash": item.matches,
+                             "Classification": item.file_classification}
+                yara_results_dict[str(item.file_matches)] = item_dict
             yara_rule_file = current_app.mongo.db.aucr.find_one({"filename": yara.yara_list_name})
             yara_dict = {"id": yara.id, "yara_rules": yara_rule_file["fileobj"], "yara_list_name": yara.yara_list_name}
             form.yara_rules = yara_rule_file["fileobj"]
             return render_template('edit.html', title='Edit Yara Ruleset', form=form,
-                                   groups=group_info, table_dict=yara_dict)
+                                   groups=group_info, table_dict=yara_dict, yara_results=yara_results_dict)
         else:
             return yara_route()

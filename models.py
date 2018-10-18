@@ -6,16 +6,29 @@ import udatetime as datetime
 import yara
 
 from sqlalchemy import event
-from flask import flash
 from app import db
 from app.plugins.unum.models import UploadedFiles, Classification
-from app.plugins.reports.storage.elastic_search import add_to_index
 
 
 def check_dir(file_dir, name):
     if file_dir:
         if not os.path.exists(file_dir):
             raise RuntimeError("The {} dir '{}' must exist but it doesn't!".format(name, file_dir))
+
+
+class YaraRuleResults(db.Model):
+    """Yara Result database table."""
+
+    __tablename__ = 'yara_rule_results'
+    id = db.Column(db.Integer, primary_key=True)
+    yara_list_id = db.Column(db.Integer, db.ForeignKey('yara_rules.id'))
+    matches = db.Column(db.String(3072))
+    file_matches = db.Column(db.Integer, db.ForeignKey('uploaded_file_table.id'))
+    file_classification = db.Column(db.String(3072))
+    run_time = db.Column(db.DateTime)
+
+    def __repr__(self):
+        return '<Yara Results {}>'.format(self.yara_name)
 
 
 class YaraRules(db.Model):
@@ -74,31 +87,16 @@ class YaraRules(db.Model):
 def receive_before_flush(session, flush_context, instances):
     for t in (x for x in session.new.union(session.dirty) if (isinstance(x, YaraRules) and
                                                               x.yara_rules is not None and len(x.yara_rules) > 0)):
-
         yara_matches = t.test_yara()
         for item in yara_matches:
             match_known_item = UploadedFiles.query.filter_by(upload_file=item).first()
             match_known_classification = Classification.query.filter_by(id=match_known_item.classification).first()
-            yara_matches_dict = {"Yara Rule Name": t.yara_list_name,
-                                 "MD5 Hash Matched": match_known_item.upload_file,
-                                 "Classification": match_known_item.classification,
-                                 "Description": match_known_item.description,
-                                 "Timestamp": datetime.utcnow()}
             if match_known_item:
-                flash('Yara MD5 Matches: ' + match_known_item.upload_file +
-                      ' Classification: ' + str(match_known_classification.classification) +
-                      ' Description: ' + match_known_item.description)
-                add_to_index("yara-matches", yara_matches_dict)
+                new_yara_result = YaraRuleResults(yara_list_id=t.id, matches=match_known_item.upload_file,
+                                                  file_matches=match_known_item.id,
+                                                  file_classification=match_known_classification.classification,
+                                                  run_time=datetime.utcnow())
+                db.session.add(new_yara_result)
 
 
-class YaraRuleResults(db.Model):
-    """Yara Result database table."""
 
-    __tablename__ = 'yara_rule_results'
-    id = db.Column(db.Integer, primary_key=True)
-    yara_list_id = db.Column(db.Integer, db.ForeignKey('yara_rules.id'))
-    matches = db.Column(db.String(3072))
-    file_matches = db.Column(db.Integer, db.ForeignKey('uploaded_file_table.id'))
-
-    def __repr__(self):
-        return '<Yara Results {}>'.format(self.yara_name)

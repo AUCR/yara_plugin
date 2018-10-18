@@ -5,19 +5,15 @@
     <main class="mdl-layout__content">
         <div class="page-content">
             <div class="mdl-grid">
-                <span class="mdl-layout-title">YARA</span>
+                <div class="mdl-layout-title">YARA</div>
                 <div class="mdl-layout-spacer"></div>
                 <a href="{{  url_for('yara.create') }}">Create New Yara Ruleset</a>
             </div>
             <div class="mdl-layout-spacer"></div>
-            {% with form_object="createbutton", button_icon="add", button_text="Run Yara List", button_value="createbuttonvalue" %}
-                {% include "subtemplates/_plain_button.html" %}
+            {% with form_object="table", table_list=["Delete", "Edit"], table_header=["Yara Ruleset ID", "Yara Rule Name"],url_for_value='yara.edit' %}
+                {% include "subtemplates/_table_object.html" %}
             {% endwith %}
+            <div class="mdl-layout-spacer"></div>
         </div>
-        <div class="mdl-layout-spacer"></div>
-        {% with form_object="table", table_list=["Delete", "Edit"], table_header=["Yara Ruleset ID", "Yara Rule Name"],url_for_value='yara.edit' %}
-            {% include "subtemplates/_table_object.html" %}
-        {% endwith %}
-        <div class="mdl-layout-spacer"></div>
     </main>
 {% endblock %}
