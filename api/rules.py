@@ -2,10 +2,10 @@
 # coding=utf-8
 import os
 from flask import jsonify, g
-from app.plugins.yara.models import YaraRules
-from app.plugins.api.auth import token_auth
-from app.plugins.api.routes import api_page as rules_api_page
-from app.plugins.auth.models import Group
+from aucr_app.plugins.yara.models import YaraRules
+from aucr_app.plugins.api.auth import token_auth
+from aucr_app.plugins.api.routes import api_page as rules_api_page
+from aucr_app.plugins.auth.models import Group
 
 
 @rules_api_page.route('/yara_rule_list/<int:_id>', methods=['GET'])

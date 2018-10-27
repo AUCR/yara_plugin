@@ -6,8 +6,8 @@ import udatetime as datetime
 import yara
 
 from sqlalchemy import event
-from app import db
-from app.plugins.unum.models import UploadedFiles, Classification
+from aucr_app import db
+from aucr_app.plugins.unum.models import UNUM, Classification
 
 
 def check_dir(file_dir, name):
@@ -89,10 +89,10 @@ def receive_before_flush(session, flush_context, instances):
                                                               x.yara_rules is not None and len(x.yara_rules) > 0)):
         yara_matches = t.test_yara()
         for item in yara_matches:
-            match_known_item = UploadedFiles.query.filter_by(upload_file=item).first()
+            match_known_item = UNUM.query.filter_by(md5_hash=item).first()
             match_known_classification = Classification.query.filter_by(id=match_known_item.classification).first()
             if match_known_item:
-                new_yara_result = YaraRuleResults(yara_list_id=t.id, matches=match_known_item.upload_file,
+                new_yara_result = YaraRuleResults(yara_list_id=t.id, matches=match_known_item.md5_hash,
                                                   file_matches=match_known_item.id,
                                                   file_classification=match_known_classification.classification,
                                                   run_time=datetime.utcnow())

@@ -2,12 +2,12 @@
 # coding=utf-8
 import os
 import udatetime
-from app import db
+from aucr_app import db
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
-from app.plugins.auth.models import Groups, Group
-from app.plugins.yara.forms import CreateYara, EditYara
-from app.plugins.yara.models import YaraRules, YaraRuleResults
+from aucr_app.plugins.auth.models import Groups, Group
+from aucr_app.plugins.yara.forms import CreateYara, EditYara
+from aucr_app.plugins.yara.models import YaraRules, YaraRuleResults
 from sqlalchemy import or_
 
 yara_page = Blueprint('yara', __name__, template_folder='templates')
