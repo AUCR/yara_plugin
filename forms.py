@@ -7,6 +7,12 @@ from flask_babel import lazy_gettext as _l
 from aucr_app.plugins.Horatio.globals import AVAILABLE_CHOICES
 
 
+class Yara(FlaskForm):
+    """Upload New File Form."""
+
+    createnewyara = SubmitField(_l("Create"))
+
+
 class CreateYara(FlaskForm):
     """Yara Rule Creation Form."""
 

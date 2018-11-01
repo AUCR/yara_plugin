@@ -4,18 +4,27 @@
 {% block app_content %}
     <main class="mdl-layout__content">
         <div class="page-content mdl-cell mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop">
-            <div class="mdl-layout-title">YARA</div>
-             <div class="mdl-layout-spacer"></div>
-             <a href="{{  url_for('yara.create') }}">Create New Yara Ruleset</a>
-             <div class="mdl-layout-spacer"></div>
-             {% with form_object="table",
-                     table_list=["Delete"],
-                     table_header=["Rule ID", "Rule List Name"],
-                     url_for_value='yara.edit',
-                     checkbox_enabled="True" %}
-                 {% include "subtemplates/_table_object.html" %}
-             {% endwith %}
-             <div class="mdl-layout-spacer"></div>
+            <div class="mdl-grid">
+                <div class="mdl-laout-title">YARA</div>
+                <div class="mdl-layout-spacer"></div>
+                <form class="form" method="post" role="form">
+                        {{ form.hidden_tag() }}
+                        {% with form_object="uploadbutton", button_text="",button_icon="add", button_value="uploadnewfilebutton" %}
+                            {% include "subtemplates/_plain_button.html" %}
+                        {% endwith %}
+                </form>
+            </div>
+            <div class="mdl-grid">
+                <div class="mdl-layout-spacer"></div>
+                 {% with form_object="table",
+                         table_list=["Delete"],
+                         table_header=["Rule ID", "Rule List Name"],
+                         url_for_value='yara.edit',
+                         checkbox_enabled="True" %}
+                     {% include "subtemplates/_table_object.html" %}
+                 {% endwith %}
+                 <div class="mdl-layout-spacer"></div>
+            </div>
         </div>
     </main>
 {% endblock %}
