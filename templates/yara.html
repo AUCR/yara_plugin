@@ -25,6 +25,9 @@
                  {% endwith %}
                  <div class="mdl-layout-spacer"></div>
             </div>
+            {% with form_object="prevnextnav", prev_url=prev_url, prev_text="Back", next_url=next_url, next_text="Next" %}
+                {% include "subtemplates/_prev_next_nav.html" %}
+            {% endwith %}
         </div>
     </main>
 {% endblock %}

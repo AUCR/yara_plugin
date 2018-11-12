@@ -3,7 +3,7 @@
 import os
 import udatetime
 from aucr_app import db
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
 from flask_login import login_required, current_user
 from aucr_app.plugins.auth.models import Groups, Group
 from aucr_app.plugins.yara.forms import CreateYara, EditYara, Yara
@@ -19,13 +19,27 @@ def yara_route():
     """Yara Plugin default rule view."""
     form = Yara(request.form)
     if request.method == 'POST':
-        return redirect("yara/create")
-    yara_list_name = YaraRules.query.all()
+        request_form = Yara(request.form)
+        if request_form.createnewyara:
+            return redirect("yara/create")
+    page = request.args.get('page', 1, type=int) or 1
+    count = page * 10
     yara_dict = {}
-    for item in yara_list_name:
-        item_dict = {"id": item.id, "yara_list_name": item.yara_list_name}
-        yara_dict[str(item.id)] = item_dict
-    return render_template('yara.html', table_dict=yara_dict, form=form)
+    total = 0
+    while total < 10:
+        total += 1
+        id_item = count - 10 + total
+        item = YaraRules.query.filter_by(id=id_item).first()
+        if item:
+            group_ids = Group.query.filter_by(username_id=current_user.id).all()
+            for groups in group_ids:
+                if item.group_access == groups:
+                    item_dict = {"id": item.id, "yara_list_name": item.yara_list_name}
+                    yara_dict[str(item.id)] = item_dict
+    prev_url = '?page=' + str(page - 1)
+    next_url = '?page=' + str(page + 1)
+    return render_template('yara.html', table_dict=yara_dict, form=form, page=page,
+                           prev_url=prev_url, next_url=next_url)
 
 
 @yara_page.route('/create', methods=['GET', 'POST'])
