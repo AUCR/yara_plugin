@@ -1,10 +1,11 @@
 """AUCR yara plugin route page handler."""
 # coding=utf-8
-import os
 import udatetime
+import logging
 from aucr_app import db
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
+from aucr_app.plugins.tasks.mq import get_mq_yaml_configs, index_mq_aucr_report
 from aucr_app.plugins.auth.models import Groups, Group
 from aucr_app.plugins.yara.forms import CreateYara, EditYara, Yara
 from aucr_app.plugins.yara.models import YaraRules, YaraRuleResults
@@ -33,7 +34,7 @@ def yara_route():
         if item:
             group_ids = Group.query.filter_by(username_id=current_user.id).all()
             for groups in group_ids:
-                if item.group_access == groups:
+                if item.group_access == groups.id:
                     item_dict = {"id": item.id, "yara_list_name": item.yara_list_name}
                     yara_dict[str(item.id)] = item_dict
     prev_url = '?page=' + str(page - 1)
@@ -82,13 +83,20 @@ def edit():
         if yara:
             form = EditYara(request.form)
             if form.validate_on_submit():
+                rabbit_mq_server_ip = current_app.config['RABBITMQ_SERVER']
                 yara.yara_rules = request.form["yara_rules"]
                 yara.yara_list_name = request.form["yara_list_name"]
                 current_app.mongo.db.aucr.delete_one({"filename": yara.yara_list_name})
                 data = {"filename": request.form["yara_list_name"], "fileobj": request.form["yara_rules"]}
                 current_app.mongo.db.aucr.insert_one(data)
-                db.session.commit()
-        return yara_route()
+                mq_config_dict = get_mq_yaml_configs()
+                files_config_dict = mq_config_dict["reports"]
+                for item in files_config_dict:
+                    if "yara" in item:
+                        logging.info("Adding " + str(yara.id) + " " + str(item["yara"][0]) + " to MQ")
+                        index_mq_aucr_report(str(yara.id), str(rabbit_mq_server_ip), item["yara"][0])
+                flash("The Yara Rule " + str(yara.yara_list_name) + " has been updated and the rule is running.")
+        return redirect(url_for('yara.yara_route'))
     if request.method == "GET":
         if yara:
             form = EditYara(yara)
