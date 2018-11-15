@@ -1,5 +1,6 @@
-"""UNUM file plugin api functionality."""
+"""YARA plugin api functionality."""
 # coding=utf-8
+import udatetime
 from flask import jsonify, g, request, current_app
 from aucr_app import db
 from aucr_app.plugins.yara.models import YaraRules, YaraRuleResults
@@ -63,3 +64,22 @@ def yara_rule_results(_id):
         else:
             error_data = {"error": "Not authorized to view this file.", "error_code": 403}
             return jsonify(error_data)
+
+
+@rules_api_page.route('/yara_rule_create/', methods=['POST'])
+@token_auth.login_required
+def create_yara_rule_list():
+    """API Update Yara Rule."""
+    if request.method == "POST":
+        data = request.form
+        if 'yara_rule_list' in data and data['yara_rule_list'] != data.yara_rule_list and \
+                YaraRules.query.filter_by(yara_rule_list=data['yara_rule_list']).first():
+            return bad_request('Please use a different yara rule list name.')
+        data_mongo = {"filename": data["yara_list_name"], "fileobj": data["yara_rules"]}
+        current_app.mongo.db.aucr.insert_one(data_mongo)
+        new_yara = YaraRules(created_by=int(data["created_by"]), group_access=int(data["group_access"]),
+                             yara_list_name=str(data["yara_list_name"]), created_time_stamp=udatetime.utcnow(),
+                             modify_time_stamp=udatetime.utcnow())
+        db.session.add(new_yara)
+        db.session.commit()
+        return jsonify(new_yara.to_dict())

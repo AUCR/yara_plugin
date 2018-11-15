@@ -40,12 +40,12 @@ class YaraRules(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     yara_list_name = db.Column(db.String(32), index=True)
     created_time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    modify_time_stamp = db.Column(db.DateTime, index=True)
+    modify_time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     group_access = db.Column(db.Integer, db.ForeignKey('groups.id'))
 
     def __repr__(self):
-        return '<Yara {}>'.format(self.yara_name)
+        return '<Yara {}>'.format(self.yara_list_name)
 
     def to_dict(self):
         """Return dictionary object type for API calls."""
