@@ -16,7 +16,7 @@ class Yara(FlaskForm):
 class CreateYara(FlaskForm):
     """Yara Rule Creation Form."""
 
-    yara_rules = TextAreaField(_l('Yara Rules'), validators=[Length(min=0, max=4912)])
+    yara_rules = TextAreaField(_l('Yara Rules'), validators=[Length(min=0, max=4912000)])
     yara_list_name = TextAreaField(_l('List Name'), validators=[Length(min=0, max=32)])
     group_access = SelectMultipleField(_l('Group Access'), choices=AVAILABLE_CHOICES)
     submit = SubmitField(_l('Create'))
@@ -35,8 +35,6 @@ class EditYara(FlaskForm):
         super(EditYara, self).__init__(*args, **kwargs)
         try:
             self.yara_id = yara.id
-            self.yara_rules = yara.yara_rules
             self.yara_list_name = yara.yara_list_name
         except:
-            self.yara_rules = yara["yara_rules"]
             self.yara_list_name = yara["yara_list_name"]
