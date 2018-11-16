@@ -18,7 +18,7 @@
                 <div class="mdl-layout-spacer"></div>
                  {% with form_object="table",
                          table_list=["Delete"],
-                         table_header=["Rule ID", "Rule List Name"],
+                         table_header=["Rule ID", "Rule List Name", "Author", "Total Hits", "Last Modified"],
                          url_for_value='yara.edit',
                          checkbox_enabled="True" %}
                      {% include "subtemplates/_table_object.html" %}

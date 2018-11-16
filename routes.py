@@ -6,7 +6,7 @@ from aucr_app import db
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
 from flask_login import login_required, current_user
 from aucr_app.plugins.tasks.mq import get_mq_yaml_configs, index_mq_aucr_report
-from aucr_app.plugins.auth.models import Groups, Group
+from aucr_app.plugins.auth.models import Groups, Group, User
 from aucr_app.plugins.yara.forms import CreateYara, EditYara, Yara
 from aucr_app.plugins.yara.models import YaraRules, YaraRuleResults
 from sqlalchemy import or_
@@ -34,8 +34,11 @@ def yara_route():
         if item:
             group_ids = Group.query.filter_by(username_id=current_user.id).all()
             for groups in group_ids:
-                if item.group_access == groups.id:
-                    item_dict = {"id": item.id, "yara_list_name": item.yara_list_name}
+                if item.group_access == groups.groups_id:
+                    author_name = User.query.filter_by(id=item.created_by).first()
+                    total_hits = len(YaraRuleResults.query.filter_by(yara_list_id=item.id).all())
+                    item_dict = {"id": item.id, "yara_list_name": item.yara_list_name, "author": author_name.username,
+                                 "total_hits": total_hits,  "modify_time_stamp": item.modify_time_stamp}
                     yara_dict[str(item.id)] = item_dict
     prev_url = '?page=' + str(page - 1)
     next_url = '?page=' + str(page + 1)
@@ -58,7 +61,6 @@ def create():
             new_yara = YaraRules(created_by=current_user.id, group_access=form.group_access.data[0],
                                  yara_list_name=form.yara_list_name, created_time_stamp=udatetime.utcnow(),
                                  modify_time_stamp=udatetime.utcnow())
-
             db.session.add(new_yara)
             db.session.commit()
             flash("The yara rule has been created.")
