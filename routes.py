@@ -66,7 +66,7 @@ def create():
             flash("The yara rule has been created.")
             return redirect(url_for('yara.yara_route'))
     form = CreateYara(request.form)
-    return render_template('create.html', title='Create A New Yara Ruleset', form=form, groups=group_info)
+    return render_template('yara_create.html', title='Create A New Yara Ruleset', form=form, groups=group_info)
 
 
 @yara_page.route('/edit', methods=['GET', 'POST'])
@@ -111,7 +111,7 @@ def edit():
             yara_rule_file = current_app.mongo.db.aucr.find_one({"filename": yara.yara_list_name})
             yara_dict = {"id": yara.id, "yara_rules": yara_rule_file["fileobj"], "yara_list_name": yara.yara_list_name}
             form.yara_rules = yara_rule_file["fileobj"]
-            return render_template('edit.html', title='Edit Yara Ruleset', form=form,
+            return render_template('yara_edit.html', title='Edit Yara Ruleset', form=form,
                                    groups=group_info, table_dict=yara_dict, yara_results=yara_results_dict)
         else:
             return yara_route()

@@ -1,4 +1,4 @@
-"""AUCR Cuckoo plugin function library."""
+"""AUCR Yara plugin function library."""
 # coding=utf-8
 import os
 import udatetime

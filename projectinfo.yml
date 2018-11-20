@@ -4,7 +4,7 @@ info:
   name: "Yara "
   authors: "Wyatt Roersma, Adam Lesperance, Daniel Deneweth"
   authors_email: "wyattroersma@gmail.com"
-  description: "A master timekeeper plugin for AUCR."
+  description: "A Yara rule management and testing plugin for AUCR."
   license: 'MIT'
   classifiers:
     - 'Development Status :: 4 - Beta'
@@ -16,4 +16,4 @@ version:
   major: 0
   minor: 0
   revision: 2
-  release: 0
+  release: 1
