@@ -3,6 +3,7 @@
 import udatetime as datetime
 from flask import current_app
 from aucr_app import db
+from aucr_app.plugins.auth.models import SearchableMixin, PaginatedAPIMixin
 
 
 class YaraRuleResults(db.Model):
@@ -32,7 +33,7 @@ class YaraRuleResults(db.Model):
         return data
 
 
-class YaraRules(db.Model):
+class YaraRules(SearchableMixin, PaginatedAPIMixin, db.Model):
     """Yara data default table for aucr."""
 
     __searchable__ = ['id', 'yara_list_name', 'modify_time_stamp', 'created_by']

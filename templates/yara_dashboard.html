@@ -19,7 +19,7 @@
                  {% with form_object="table",
                          table_list=["Delete"],
                          table_header=["Rule ID", "Rule List Name", "Author", "Total Hits", "Last Modified"],
-                         url_for_value='yara.edit',
+                         url_for_value='yara.yara_rule_edit',
                          checkbox_enabled="True" %}
                      {% include "subtemplates/_table_object.html" %}
                  {% endwith %}

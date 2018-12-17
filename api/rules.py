@@ -3,7 +3,7 @@
 import udatetime
 from flask import jsonify, g, request, current_app
 from aucr_app import db
-from aucr_app.plugins.yara.models import YaraRules, YaraRuleResults
+from aucr_app.plugins.yara_plugin.models import YaraRules, YaraRuleResults
 from aucr_app.plugins.api.auth import token_auth
 from aucr_app.plugins.api.routes import api_page as rules_api_page
 from aucr_app.plugins.auth.models import Group

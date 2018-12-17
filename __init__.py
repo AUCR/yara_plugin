@@ -3,10 +3,10 @@
 import os
 from multiprocessing import Process
 from aucr_app.plugins.tasks.mq import get_a_task_mq
-from aucr_app.plugins.yara.yara_processing import call_back
-from aucr_app.plugins.yara.routes import yara_page
-from aucr_app.plugins.yara.api.rules import rules_api_page
-from aucr_app.plugins.yara import models
+from aucr_app.plugins.yara_plugin.yara_processing import call_back
+from aucr_app.plugins.yara_plugin.routes import yara_page
+from aucr_app.plugins.yara_plugin.api.rules import rules_api_page
+from aucr_app.plugins.yara_plugin import models
 
 
 def load(app):

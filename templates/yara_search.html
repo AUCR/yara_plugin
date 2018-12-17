@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+    <h3>{{ _('Yara Rule Search Results') }}</h3>
+    {% for post in yara_rule_search_result %}
+        {% include '_yara_rules.html' %}
+    {% endfor %}
+    {% if yara_rules %}
+        <nav aria-label="...">
+            <ul class="pager">
+                {% with form_object="prevnextnav", prev_url=prev_url, prev_text="Last Page", next_url=next_url,
+                    next_text="Next Page" %}
+                    {% include "subtemplates/_prev_next_nav.html" %}
+                {% endwith %}
+            </ul>
+        </nav>
+    {% endif %}
+{% endblock %}

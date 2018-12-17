@@ -7,7 +7,8 @@ import yara
 from flask import current_app
 from aucr_app.plugins.unum.models import UNUM, Classification
 from aucr_app import db, create_app
-from aucr_app.plugins.yara.models import YaraRules, YaraRuleResults
+from aucr_app.plugins.yara_plugin.models import YaraRules, YaraRuleResults
+from aucr_app.plugins.auth.models import Message
 
 
 def check_dir(file_dir, name):
@@ -34,7 +35,7 @@ def test_yara(yara_rule_file):
         scan(scanner, file_dir, yara_matches)
         return yara_matches
     except Exception as e:
-        logging.warning("Not a valid Answer" + str(e))
+        logging.warning("Not a valid Yara File" + str(e))
         return [], []
 
 
@@ -55,4 +56,8 @@ def call_back(ch, method, properties, report_id):
                                                   file_classification=match_known_classification.classification,
                                                   run_time=udatetime.utcnow())
                 db.session.add(new_yara_result)
+                db.session.commit()
+                yara_notification = \
+                    Message(sender_id=1, recipient_id=match_known_item.created_by, body=str(new_yara_result.to_dict()))
+                db.session.add(yara_notification)
                 db.session.commit()

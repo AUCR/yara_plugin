@@ -1,10 +1,24 @@
 """AUCR yara plugin default page forms."""
 # coding=utf-8
+from flask import request
 from flask_wtf import FlaskForm
-from wtforms import SubmitField, TextAreaField, SelectMultipleField, IntegerField
-from wtforms.validators import Length
 from flask_babel import lazy_gettext as _l
+from wtforms.validators import DataRequired
+from wtforms import SubmitField, TextAreaField, SelectMultipleField, IntegerField, StringField
+from wtforms.validators import Length
 from aucr_app.plugins.Horatio.globals import AVAILABLE_CHOICES
+
+
+class SearchForm(FlaskForm):
+    """SearchForm wtf search form builder."""
+    q = StringField(_l('yara.yara_search'), validators=[DataRequired()])
+
+    def __init__(self, *args, **kwargs):
+        if 'formdata' not in kwargs:
+            kwargs['formdata'] = request.args
+        if 'csrf_enabled' not in kwargs:
+            kwargs['csrf_enabled'] = False
+        super(SearchForm, self).__init__(*args, **kwargs)
 
 
 class Yara(FlaskForm):

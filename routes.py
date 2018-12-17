@@ -2,16 +2,44 @@
 # coding=utf-8
 import udatetime
 import logging
-from aucr_app import db
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app
+from sqlalchemy import or_
+from flask_babel import get_locale
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, g
 from flask_login import login_required, current_user
+from aucr_app import db
 from aucr_app.plugins.tasks.mq import get_mq_yaml_configs, index_mq_aucr_report
 from aucr_app.plugins.auth.models import Groups, Group, User
-from aucr_app.plugins.yara.forms import CreateYara, EditYara, Yara
-from aucr_app.plugins.yara.models import YaraRules, YaraRuleResults
-from sqlalchemy import or_
+from aucr_app.plugins.yara_plugin.forms import CreateYara, EditYara, Yara, SearchForm
+from aucr_app.plugins.yara_plugin.models import YaraRules, YaraRuleResults
+
 
 yara_page = Blueprint('yara', __name__, template_folder='templates')
+
+
+@yara_page.before_app_request
+def before_request():
+    """Set user last seen time user."""
+    if current_user.is_authenticated:
+        g.search_form = SearchForm()
+    g.locale = str(get_locale())
+
+
+@yara_page.route('/search')
+@login_required
+def yara_search():
+    """AUCR search plugin flask blueprint."""
+    if not g.search_form.validate():
+        return redirect(url_for('yara.yara_route'))
+    page = request.args.get('page', 1, type=int) or 1
+    posts, total = YaraRules.search(g.search_form.q.data, page, int(current_app.config['POSTS_PER_PAGE']))
+    search_yara_rules, total = YaraRules.search(g.search_form.q.data, page,
+                                                int(current_app.config['POSTS_PER_PAGE']))
+    next_url = url_for('yara.yara_search', q=g.search_form.q.data, page=page + 1) \
+        if total > page * int(current_app.config['POSTS_PER_PAGE']) \
+        else url_for('yara.yara_search', q=g.search_form.q.data, page=page + 1)
+    prev_url = url_for('yara.yara_search', q=g.search_form.q.data, page=page - 1) if page > 1 else None
+    return render_template('yara_search.html', title='Yara Rule Search', page=page, search_url='yara.yara_search',
+                           next_url=next_url, prev_url=prev_url, posts=posts, yara_rule_search_result=search_yara_rules)
 
 
 @yara_page.route('/yara',  methods=['GET', 'POST'])
@@ -42,8 +70,8 @@ def yara_route():
                     yara_dict[str(item.id)] = item_dict
     prev_url = '?page=' + str(page - 1)
     next_url = '?page=' + str(page + 1)
-    return render_template('yara.html', table_dict=yara_dict, form=form, page=page,
-                           prev_url=prev_url, next_url=next_url)
+    return render_template('yara_dashboard.html', table_dict=yara_dict, form=form, page=page,
+                           prev_url=prev_url, next_url=next_url, search_url='yara.yara_search')
 
 
 @yara_page.route('/create', methods=['GET', 'POST'])
@@ -71,7 +99,7 @@ def create():
 
 @yara_page.route('/edit', methods=['GET', 'POST'])
 @login_required
-def edit():
+def yara_rule_edit():
     """Edit yara view."""
     group_info = Groups.query.all()
     submitted_yara_id = request.args.get("id")
