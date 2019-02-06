@@ -4,6 +4,7 @@ import os
 import udatetime
 import logging
 import yara
+import ujson
 from flask import current_app
 from aucr_app.plugins.unum.models import UNUM, Classification
 from aucr_app import db, create_app
@@ -57,7 +58,8 @@ def call_back(ch, method, properties, report_id):
                                                   run_time=udatetime.utcnow())
                 db.session.add(new_yara_result)
                 db.session.commit()
+                message_data = ujson.dumps(new_yara_result.to_dict(), indent=2, sort_keys=True)
                 yara_notification = \
-                    Message(sender_id=1, recipient_id=match_known_item.created_by, body=str(new_yara_result.to_dict()))
+                    Message(sender_id=1, recipient_id=match_known_item.created_by, body=message_data)
                 db.session.add(yara_notification)
                 db.session.commit()
