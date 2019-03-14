@@ -84,11 +84,9 @@ def create():
         if form.validate():
             form.yara_rules = request.form["yara_rules"]
             form.yara_list_name = request.form["yara_list_name"]
-            data = {"filename": form.yara_list_name, "fileobj": form.yara_rules}
-            current_app.mongo.db.aucr.insert_one(data)
             new_yara = YaraRules(created_by=current_user.id, group_access=form.group_access.data[0],
                                  yara_list_name=form.yara_list_name, created_time_stamp=udatetime.utcnow(),
-                                 modify_time_stamp=udatetime.utcnow())
+                                 modify_time_stamp=udatetime.utcnow(), yara_rules=form.yara_rules)
             db.session.add(new_yara)
             db.session.commit()
             flash("The yara rule has been created.")
@@ -116,15 +114,13 @@ def yara_rule_edit():
                 rabbit_mq_server_ip = current_app.config['RABBITMQ_SERVER']
                 yara.yara_rules = request.form["yara_rules"]
                 yara.yara_list_name = request.form["yara_list_name"]
-                current_app.mongo.db.aucr.delete_one({"filename": yara.yara_list_name})
-                data = {"filename": request.form["yara_list_name"], "fileobj": request.form["yara_rules"]}
-                current_app.mongo.db.aucr.insert_one(data)
                 mq_config_dict = get_mq_yaml_configs()
                 files_config_dict = mq_config_dict["reports"]
                 for item in files_config_dict:
                     if "yara" in item:
                         logging.info("Adding " + str(yara.id) + " " + str(item["yara"][0]) + " to MQ")
                         index_mq_aucr_report(str(yara.id), str(rabbit_mq_server_ip), item["yara"][0])
+                db.session.commit()
                 flash("The Yara Rule " + str(yara.yara_list_name) + " has been updated and the rule is running.")
         return redirect(url_for('yara.yara_route'))
     if request.method == "GET":
@@ -136,9 +132,7 @@ def yara_rule_edit():
                 item_dict = {"id": item.file_matches, "MD5 Hash": item.matches,
                              "Classification": item.file_classification}
                 yara_results_dict[str(item.file_matches)] = item_dict
-            yara_rule_file = current_app.mongo.db.aucr.find_one({"filename": yara.yara_list_name})
-            yara_dict = {"id": yara.id, "yara_rules": yara_rule_file["fileobj"], "yara_list_name": yara.yara_list_name}
-            form.yara_rules = yara_rule_file["fileobj"]
+            yara_dict = {"id": yara.id, "yara_rules": yara.yara_rules, "yara_list_name": yara.yara_list_name}
             return render_template('yara_edit.html', title='Edit Yara Ruleset', form=form,
                                    groups=group_info, table_dict=yara_dict, yara_results=yara_results_dict)
         else:

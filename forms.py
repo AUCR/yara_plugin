@@ -50,5 +50,8 @@ class EditYara(FlaskForm):
         try:
             self.yara_id = yara.id
             self.yara_list_name = yara.yara_list_name
+            self.yara_rules = yara.yara_rules
+
         except:
             self.yara_list_name = yara["yara_list_name"]
+            self.yara_rules = yara["yara_rules"]

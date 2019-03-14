@@ -1,7 +1,6 @@
 # coding=utf-8
 """Yara AUCR plugin default database tables."""
 import udatetime as datetime
-from flask import current_app
 from aucr_app import db
 from aucr_app.plugins.auth.models import SearchableMixin, PaginatedAPIMixin
 
@@ -36,21 +35,21 @@ class YaraRuleResults(db.Model):
 class YaraRules(SearchableMixin, PaginatedAPIMixin, db.Model):
     """Yara data default table for aucr."""
 
-    __searchable__ = ['id', 'yara_list_name', 'modify_time_stamp', 'created_by']
+    __searchable__ = ['id', 'yara_list_name', 'modify_time_stamp', 'created_by', 'yara_rules']
     __tablename__ = 'yara_rules'
     id = db.Column(db.Integer, primary_key=True)
-    yara_list_name = db.Column(db.String(32), index=True)
+    yara_list_name = db.Column(db.String(32), index=True, unique=True)
     created_time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     modify_time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     group_access = db.Column(db.Integer, db.ForeignKey('groups.id'))
+    yara_rules = db.Column(db.String(4912000))
 
     def __repr__(self):
         return '<Yara {}>'.format(self.yara_list_name)
 
     def to_dict(self):
         """Return dictionary object type for API calls."""
-        yara_rule_file = current_app.mongo.db.aucr.find_one({"filename": self.yara_list_name})
         data = {
             'id': self.id,
             'yara_list_name': self.yara_list_name,
@@ -58,7 +57,7 @@ class YaraRules(SearchableMixin, PaginatedAPIMixin, db.Model):
             'modify_time_stamp': self.modify_time_stamp.isoformat() + 'Z',
             'created_by': self.created_by,
             'group_access': self.group_access,
-            'yara_rules': yara_rule_file["fileobj"]
+            'yara_rules': self.yara_rules
         }
         return data
 
