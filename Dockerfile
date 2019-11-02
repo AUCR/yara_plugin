@@ -1,8 +1,8 @@
-FROM python:3.6-alpine AS yara
+FROM python:3.7-alpine AS yara
 
 MAINTAINER Wyatt Roersma <wyatt@aucr.io>
 
-ENV YARA_VERSION 3.8.1
+ENV YARA_VERSION 3.11
 
 RUN apk add --no-cache \
     openssl \

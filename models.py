@@ -12,6 +12,7 @@ class YaraRuleResults(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     yara_list_id = db.Column(db.Integer, db.ForeignKey('yara_rules.id'))
     matches = db.Column(db.String(3072))
+    file_string_matches = db.Column(db.String(4912000))
     file_matches = db.Column(db.Integer, db.ForeignKey('uploaded_file_table.id'))
     file_classification = db.Column(db.String(3072))
     run_time = db.Column(db.DateTime)
@@ -27,7 +28,8 @@ class YaraRuleResults(db.Model):
             'matches': self.matches,
             'run_time': self.run_time.isoformat() + 'Z',
             'file_matches': self.file_matches,
-            'file_classification': self.file_classification,
+            'file_string_matches': self.file_string_matches,
+            'file_classification': self.file_classification
         }
         return data
 
@@ -43,6 +45,7 @@ class YaraRules(SearchableMixin, PaginatedAPIMixin, db.Model):
     modify_time_stamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     created_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     group_access = db.Column(db.Integer, db.ForeignKey('groups.id'))
+    last_updated_by = db.Column(db.Integer, db.ForeignKey('user.id'))
     yara_rules = db.Column(db.String(4912000))
 
     def __repr__(self):
@@ -57,7 +60,8 @@ class YaraRules(SearchableMixin, PaginatedAPIMixin, db.Model):
             'modify_time_stamp': self.modify_time_stamp.isoformat() + 'Z',
             'created_by': self.created_by,
             'group_access': self.group_access,
-            'yara_rules': self.yara_rules
+            'yara_rules': self.yara_rules,
+            'last_updated_by': self.last_updated_by
         }
         return data
 

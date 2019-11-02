@@ -28,21 +28,28 @@ def before_request():
 @login_required
 def yara_search():
     """AUCR search plugin flask blueprint."""
-    if not g.search_form.validate():
-        return redirect(url_for('yara.yara_route'))
+    # if not g.search_form.validate():
+    # return redirect(url_for('yara.yara_route'))
     page = request.args.get('page', 1, type=int) or 1
     posts, total = YaraRules.search(g.search_form.q.data, page, int(current_app.config['POSTS_PER_PAGE']))
-    search_yara_rules, total = YaraRules.search(g.search_form.q.data, page,
+    search_yara_rules, total = YaraRules.search(g.search_form.q.data,
+                                                page,
                                                 int(current_app.config['POSTS_PER_PAGE']))
     next_url = url_for('yara.yara_search', q=g.search_form.q.data, page=page + 1) \
-        if total > page * int(current_app.config['POSTS_PER_PAGE']) \
+        if total["value"] > page * int(current_app.config['POSTS_PER_PAGE']) \
         else url_for('yara.yara_search', q=g.search_form.q.data, page=page + 1)
     prev_url = url_for('yara.yara_search', q=g.search_form.q.data, page=page - 1) if page > 1 else None
-    return render_template('yara_search.html', title='Yara Rule Search', page=page, search_url='yara.yara_search',
-                           next_url=next_url, prev_url=prev_url, posts=posts, yara_rule_search_result=search_yara_rules)
+    return render_template('yara_search.html',
+                           title='Yara Rule Search',
+                           page=page,
+                           search_url='yara.yara_search',
+                           next_url=next_url,
+                           prev_url=prev_url,
+                           posts=posts,
+                           yara_rule_search_result=search_yara_rules)
 
 
-@yara_page.route('/yara',  methods=['GET', 'POST'])
+@yara_page.route('/dashboard_yara',  methods=['GET', 'POST'])
 @login_required
 def yara_route():
     """Yara Plugin default rule view."""
@@ -50,49 +57,76 @@ def yara_route():
     if request.method == 'POST':
         request_form = Yara(request.form)
         if request_form.createnewyara:
-            return redirect("yara/create")
+            return redirect("/yara/create_yara")
     page = request.args.get('page', 1, type=int) or 1
-    count = page * 10
+    count = page * 100
     yara_dict = {}
     total = 0
-    while total < 10:
+    while total < 100:
         total += 1
-        id_item = count - 10 + total
+        id_item = count - 100 + total
         item = YaraRules.query.filter_by(id=id_item).first()
         if item:
+            logging.info("Saving user " + str(current_user.id) + "to yara dict.")
             group_ids = Group.query.filter_by(username_id=current_user.id).all()
             for groups in group_ids:
                 if item.group_access == groups.groups_id:
                     author_name = User.query.filter_by(id=item.created_by).first()
                     total_hits = len(YaraRuleResults.query.filter_by(yara_list_id=item.id).all())
-                    item_dict = {"id": item.id, "yara_list_name": item.yara_list_name, "author": author_name.username,
-                                 "total_hits": total_hits,  "modify_time_stamp": item.modify_time_stamp}
+                    item_dict = {"id": item.id,
+                                 "yara_list_name": item.yara_list_name,
+                                 "author": author_name.username,
+                                 "total_hits": total_hits,
+                                 "modify_time_stamp": item.modify_time_stamp.isoformat(sep=' ', timespec='seconds')}
                     yara_dict[str(item.id)] = item_dict
     prev_url = '?page=' + str(page - 1)
     next_url = '?page=' + str(page + 1)
-    return render_template('yara_dashboard.html', table_dict=yara_dict, form=form, page=page,
-                           prev_url=prev_url, next_url=next_url, search_url='yara.yara_search')
+    return render_template('yara_dashboard.html',
+                           table_dict=yara_dict,
+                           form=form,
+                           page=page,
+                           prev_url=prev_url,
+                           next_url=next_url,
+                           search_url='yara.yara_search')
 
 
-@yara_page.route('/create', methods=['GET', 'POST'])
+@yara_page.route('/create_yara', methods=['GET', 'POST'])
 @login_required
 def create():
     """Create yara default view."""
     group_info = Groups.query.all()
     if request.method == 'POST':
+        group_ids = Group.query.filter_by(username_id=current_user.id).all()
+        user_groups = []
+        for user_group in group_ids:
+            user_groups.append(user_group.groups_id)
         form = CreateYara(request.form)
         if form.validate():
             form.yara_rules = request.form["yara_rules"]
             form.yara_list_name = request.form["yara_list_name"]
-            new_yara = YaraRules(created_by=current_user.id, group_access=form.group_access.data[0],
-                                 yara_list_name=form.yara_list_name, created_time_stamp=udatetime.utcnow(),
-                                 modify_time_stamp=udatetime.utcnow(), yara_rules=form.yara_rules)
+            new_yara = YaraRules(created_by=current_user.id,
+                                 group_access=form.group_access.data[0],
+                                 last_updated_by=current_user.id,
+                                 yara_list_name=form.yara_list_name,
+                                 created_time_stamp=udatetime.utcnow(),
+                                 modify_time_stamp=udatetime.utcnow(),
+                                 yara_rules=form.yara_rules)
             db.session.add(new_yara)
             db.session.commit()
             flash("The yara rule has been created.")
             return redirect(url_for('yara.yara_route'))
+        else:
+            for error in form.errors:
+                flash(str(form.errors[error][0]), 'error')
+            return render_template('yara_create.html',
+                                   title='Create A New Yara Ruleset',
+                                   form=form,
+                                   groups=group_info)
     form = CreateYara(request.form)
-    return render_template('yara_create.html', title='Create A New Yara Ruleset', form=form, groups=group_info)
+    return render_template('yara_create.html',
+                           title='Create A New Yara Ruleset',
+                           form=form,
+                           groups=group_info)
 
 
 @yara_page.route('/edit', methods=['GET', 'POST'])
@@ -105,35 +139,53 @@ def yara_rule_edit():
     user_groups = []
     for user_group in group_ids:
         user_groups.append(user_group.groups_id)
-    yara = YaraRules.query.filter_by(id=submitted_yara_id)
-    yara = yara.filter(or_(YaraRules.id == submitted_yara_id, YaraRules.group_access.in_(user_groups))).first()
+    yara_value = YaraRules.query.filter_by(id=submitted_yara_id)
+    yara_value = yara_value.filter(or_(YaraRules.id == submitted_yara_id,
+                                       YaraRules.group_access.in_(user_groups))).first()
     if request.method == 'POST':
-        if yara:
+        if yara_value:
+            yara_value.group_access = yara_value.group_access
             form = EditYara(request.form)
             if form.validate_on_submit():
+                yara_value.group_access = yara_value.group_access
                 rabbit_mq_server_ip = current_app.config['RABBITMQ_SERVER']
-                yara.yara_rules = request.form["yara_rules"]
-                yara.yara_list_name = request.form["yara_list_name"]
+                yara_value.yara_rules = request.form["yara_rules"]
+                yara_value.yara_list_name = request.form["yara_list_name"]
                 mq_config_dict = get_mq_yaml_configs()
                 files_config_dict = mq_config_dict["reports"]
                 for item in files_config_dict:
                     if "yara" in item:
-                        logging.info("Adding " + str(yara.id) + " " + str(item["yara"][0]) + " to MQ")
-                        index_mq_aucr_report(str(yara.id), str(rabbit_mq_server_ip), item["yara"][0])
+                        logging.info("Adding " + str(yara_value.id) + " " + str(item["yara"][0]) + " to MQ")
+                        index_mq_aucr_report(str(yara_value.id),
+                                             str(rabbit_mq_server_ip),
+                                             item["yara"][0])
+
                 db.session.commit()
-                flash("The Yara Rule " + str(yara.yara_list_name) + " has been updated and the rule is running.")
+                flash("The Yara Rule " + str(yara_value.yara_list_name) + " has been updated and the rule is running.")
+            else:
+                for error in form.errors:
+                    flash(str(form.errors[error][0]), 'error')
+                return render_template('yara_edit.html', form=form)
         return redirect(url_for('yara.yara_route'))
     if request.method == "GET":
-        if yara:
-            form = EditYara(yara)
-            yara_list_results = YaraRuleResults.query.filter_by(yara_list_id=yara.id)
+        if yara_value:
+            form = EditYara(yara_value)
+            yara_list_results = YaraRuleResults.query.filter_by(yara_list_id=yara_value.id)
             yara_results_dict = {}
             for item in yara_list_results:
-                item_dict = {"id": item.file_matches, "MD5 Hash": item.matches,
+                item_dict = {"id": item.file_matches,
+                             "MD5 Hash": item.matches,
                              "Classification": item.file_classification}
                 yara_results_dict[str(item.file_matches)] = item_dict
-            yara_dict = {"id": yara.id, "yara_rules": yara.yara_rules, "yara_list_name": yara.yara_list_name}
-            return render_template('yara_edit.html', title='Edit Yara Ruleset', form=form,
-                                   groups=group_info, table_dict=yara_dict, yara_results=yara_results_dict)
+            yara_dict = {"id": yara_value.id,
+                         "yara_rules": yara_value.yara_rules,
+                         "yara_list_name": yara_value.yara_list_name,
+                         "length": yara_value.yara_rules.count('\n') + 2}
+            return render_template('yara_edit.html',
+                                   title='Edit Yara Ruleset',
+                                   form=form,
+                                   groups=group_info,
+                                   table_dict=yara_dict,
+                                   yara_results=yara_results_dict)
         else:
             return yara_route()
