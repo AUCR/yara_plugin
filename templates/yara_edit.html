@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
+
 
 {% block app_content %}
     <style>
@@ -11,31 +11,26 @@
         }
     </style>
     <main class="mdl-layout__content mdl-cell mdl-cell mdl-cell--4-col mdl-cell--3-col-tablet mdl-cell--12-col-desktop">
-        {% if yara_results %}
-            <section class="section mdl-shadow--2dp">
-                <div class="mdl-card__title">
-                    <h3 class="mdl-card__title-text">Current Files Matched</h3>
-                </div>
-                <div class="mdl-card__actions">
-                        {% with table_dict=yara_results, table_header=["File ID", "MD5 Hash", "Classification"], url_for_value='unum.edit_upload_file_route' %}
-                            {% include "subtemplates/_table_object.html" %}
-                        {% endwith %}
-                </div>
-            </section>
-        {% endif %}
+    <div class="mdl-layout-spacer"></div>
+    <div class = "mdl-tabs mdl-js-tabs">
+        <div class = "mdl-tabs__tab-bar">
+             <a href="#edit-rule" class="mdl-tabs__tab is-active">Edit Rule</a>
+             <a href="#rule-hits" class="mdl-tabs__tab">Current Matches</a>
+        </div>
+        <div class="mdl-tabs__panel is-active" id="edit-rule">
         <section class="section mdl-shadow--2dp">
-            <div class="mdl-card__title">
-                <h3 class="mdl-card__title-text">{{ title }}</h3>
-            </div>
             <div class="mdl-card__actions">
                 <form class="form" method="post" role="form">
-                    {{ form.hidden_tag() }}
+                   {{ form.hidden_tag() }}
+
                     {% with form_object=yara_list_name, form_object_name="yara_list_name", form_object_rows=1, form_object_label="List Name", form_object_value=form.yara_list_name %}
                         {% include "subtemplates/_form_object_textfield.html" %}
                     {% endwith %}
+                    <div class="mdl-layout-spacer"></div>
                     {% with form_object=yara_rules, form_object_name="yara_rules", form_object_rows=40, form_object_label="Yara Rules", form_object_value=form.yara_rules %}
                         {% include "subtemplates/_form_object_code_textfield.html" %}
                     {% endwith %}
+                    <div class="mdl-layout-spacer"></div>
                     <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
                             value=data-val.value>
                         Save
@@ -43,5 +38,18 @@
                 </form>
             </div>
         </section>
+        </div>
+            <div class="mdl-tabs__panel" id="rule-hits">
+            {% if yara_results %}
+                <section class="section mdl-shadow--2dp">
+                    <div class="mdl-card__actions">
+                            {% with table_dict=yara_results, table_header=["File ID", "MD5 Hash", "Classification"], url_for_value='unum.edit_upload_file_route' %}
+                                {% include "subtemplates/_table_object.html" %}
+                            {% endwith %}
+                    </div>
+                </section>
+            {% endif %}
+            </div>
+        </div>
     </main>
 {% endblock %}

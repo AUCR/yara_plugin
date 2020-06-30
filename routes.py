@@ -24,7 +24,7 @@ def before_request():
     g.locale = str(get_locale())
 
 
-@yara_page.route('/search')
+@yara_page.route('/yara_search')
 @login_required
 def yara_search():
     """AUCR search plugin flask blueprint."""
@@ -153,6 +153,7 @@ def yara_rule_edit():
                 yara_value.yara_list_name = request.form["yara_list_name"]
                 mq_config_dict = get_mq_yaml_configs()
                 files_config_dict = mq_config_dict["reports"]
+                yara_value.modify_time_stamp = udatetime.utcnow()
                 for item in files_config_dict:
                     if "yara" in item:
                         logging.info("Adding " + str(yara_value.id) + " " + str(item["yara"][0]) + " to MQ")
@@ -173,10 +174,11 @@ def yara_rule_edit():
             yara_list_results = YaraRuleResults.query.filter_by(yara_list_id=yara_value.id)
             yara_results_dict = {}
             for item in yara_list_results:
-                item_dict = {"id": item.file_matches,
-                             "MD5 Hash": item.matches,
-                             "Classification": item.file_classification}
-                yara_results_dict[str(item.file_matches)] = item_dict
+                if item.run_time > yara_value.modify_time_stamp:
+                    item_dict = {"id": item.file_matches,
+                                 "MD5 Hash": item.matches,
+                                 "Classification": item.file_classification}
+                    yara_results_dict[str(item.file_matches)] = item_dict
             yara_dict = {"id": yara_value.id,
                          "yara_rules": yara_value.yara_rules,
                          "yara_list_name": yara_value.yara_list_name,

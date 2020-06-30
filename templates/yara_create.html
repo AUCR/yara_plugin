@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
+
 
 {% block app_content %}
     <style>
@@ -20,7 +20,8 @@
             </div>
             <div class="mdl-card__actions mdl-card--border ">
                 <form class="form" method="post" role="form">
-                    {{ form.hidden_tag() }}
+                   {{ form.hidden_tag() }}
+
                     <!--</div>-->
                     <div class="mdl-layout-spacer"></div>
                     {% with form_object=yara_list_name, form_object_name="yara_list_name", form_object_rows=1, form_object_label="Yara List Name", form_object_value=form.data.yara_list_name if form.data.yara_list_name != None else ""  %}

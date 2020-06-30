@@ -29,7 +29,10 @@ def scan(scanner, file_dir, findings):
                     findings[str(file.name)]["strings"] = str(data[0].strings)
 
             except Exception as e:
-                print("Yara issue; " + str(e))
+                if scanner.match(file.path):
+                    data = scanner.match(file.path)
+                    findings[str(file.name)] = {}
+                    findings[str(file.name)]["strings"] = str(data["main"][0]["strings"])
 
 
 def test_yara(yara_report):
@@ -47,7 +50,9 @@ def test_yara(yara_report):
             group_ids = Group.query.filter_by(groups_id=yara_report.group_access).all()
             for player in group_ids:
                 yara_notification = \
-                    Message(sender_id=1, recipient_id=player.username_id, body=("Not a valid Yara File ID:" + str(yara_report.id) + " Error:" + str(e)))
+                    Message(sender_id=1,
+                            recipient_id=player.username_id,
+                            body=("Not a valid Yara File ID:" + str(yara_report.id) + " Error:" + str(e)))
                 db.session.add(yara_notification)
                 db.session.commit()
         return [], []

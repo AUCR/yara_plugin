@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
 
 {% block app_content %}
     <main class="mdl-layout__content">
@@ -8,7 +7,7 @@
                 <div class="mdl-laout-title">YARA</div>
                 <div class="mdl-layout-spacer"></div>
                 <form class="form" method="post" role="form">
-                        {{ form.hidden_tag() }}
+                       {{ form.hidden_tag() }}
                         {% with form_object="uploadbutton", button_text="",button_icon="add", button_value="uploadnewfilebutton" %}
                             {% include "subtemplates/_plain_button.html" %}
                         {% endwith %}
